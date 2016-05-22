@@ -55,12 +55,12 @@ static void flow_draw(int x)
 		memset(f, 0, sizeof(*f));
 
 	for (y = f->y; y < (f->y + f->len); y++) {
-		int color;
+		int color = COLOR_PAIR(CODE_COLOR);
 
 		if (y == f->y + f->len - 1)
 			color = A_BOLD;
-		else
-			color = COLOR_PAIR(CODE_COLOR);
+		else if (f->y + f->len - y < max_y / 4 && f->y + f->len < max_y)
+			color |= A_BOLD;
 
 		code_draw(y, x, color);
 	}
