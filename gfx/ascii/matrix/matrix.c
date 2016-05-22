@@ -2,7 +2,6 @@
  * matrix.c - draw matrix codes rain effect
  */
 
-#include <ctype.h>
 #include <signal.h>
 #include <curses.h>
 #include <unistd.h>
