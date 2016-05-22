@@ -37,7 +37,7 @@ static void delay(void)
 static void code_draw(int y, int x, int color)
 {
 	attron(color);
-	mvaddch(y, x, 33 + (random() % 98));
+	mvaddch(y, x, 33 + (random() % 60));
 	attroff(color);
 }
 
@@ -54,7 +54,7 @@ static void flow_draw(int x)
 	if (f->y > max_y)
 		memset(f, 0, sizeof(*f));
 
-	for (y = f->y; y < (f->y + f->len); y++) {
+	for (y = 0; y < (f->y + f->len); y++) {
 		int color = COLOR_PAIR(CODE_COLOR);
 
 		if (y == f->y + f->len - 1)
@@ -62,7 +62,10 @@ static void flow_draw(int x)
 		else if (f->y + f->len - y < max_y / 4 && f->y + f->len < max_y)
 			color |= A_BOLD;
 
-		code_draw(y, x, color);
+		if (y < f->y)
+			mvaddch(y, x, ' ');
+		else
+			code_draw(y, x, color);
 	}
 
 	if (f->len == max_y || f->y + f->len > max_y)
@@ -101,7 +104,6 @@ int main(int argc, char **argv)
 		flow_draw(random() % max_x);
 		refresh();
 		delay();
-		clear();
 	}
 
 	free(flows);
