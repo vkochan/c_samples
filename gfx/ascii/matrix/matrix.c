@@ -12,7 +12,7 @@
 #define USEC_IN_MSEC 1000
 
 typedef struct mx_flow {
-	int y, x;
+	int y;
 	size_t len;
 } mx_flow_t;
 
@@ -25,7 +25,6 @@ static void sig_handler(int sig)
 
 #define CODE_COLOR 1
 
-static size_t flows_count;
 static mx_flow_t *flows;
 
 static int max_x, max_y;
@@ -35,13 +34,6 @@ static void delay(void)
 	usleep(USEC_IN_MSEC * 150);
 }
 
-static void flow_init(mx_flow_t *f, int x)
-{
-	f->x = x;
-	f->y = 0;
-	f->len = 0;
-}
-
 static void code_draw(int y, int x, int color)
 {
 	attron(color);
@@ -49,8 +41,9 @@ static void code_draw(int y, int x, int color)
 	attroff(color);
 }
 
-static void flow_draw(mx_flow_t *f)
+static void flow_draw(int x)
 {
+	mx_flow_t *f = &flows[x];
 	int y;
 
 	if (f->y + f->len > max_y)
@@ -59,7 +52,7 @@ static void flow_draw(mx_flow_t *f)
 		f->len++;
 
 	if (f->y > max_y)
-		flow_init(f, f->x);
+		memset(f, 0, sizeof(*f));
 
 	for (y = f->y; y < (f->y + f->len); y++) {
 		int color;
@@ -69,7 +62,7 @@ static void flow_draw(mx_flow_t *f)
 		else
 			color = COLOR_PAIR(CODE_COLOR);
 
-		code_draw(y, f->x, color);
+		code_draw(y, x, color);
 	}
 
 	if (f->len == max_y || f->y + f->len > max_y)
@@ -78,13 +71,8 @@ static void flow_draw(mx_flow_t *f)
 
 static void init_flows(void)
 {
-	int i;
-
-	flows_count = max_x;
-	flows = realloc(flows, sizeof(mx_flow_t) * flows_count);
-        
-	for (i = 0; i < flows_count; i++)
-		flow_init(&flows[i], i);
+	flows = realloc(flows, sizeof(mx_flow_t) * max_x);
+	memset(flows, 0, sizeof(mx_flow_t) * max_x);
 }
 
 int main(int argc, char **argv)
@@ -101,16 +89,16 @@ int main(int argc, char **argv)
 	init_flows();
 
 	while (!do_break) {
-		int i;
+		int x;
 
-		for (i = 0; i < flows_count; i++) {
-			mx_flow_t *f = &flows[i];
+		for (x = 0; x < max_x; x++) {
+			mx_flow_t *f = &flows[x];
 
 			if (f->len)
-				flow_draw(f);
+				flow_draw(x);
 		}
 
-		flow_draw(&flows[random() % flows_count]);
+		flow_draw(random() % max_x);
 		refresh();
 		delay();
 		clear();
