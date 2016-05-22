@@ -78,27 +78,6 @@ static void init_flows(void)
 	memset(flows, 0, sizeof(mx_flow_t) * max_x);
 }
 
-static void print_banner(void)
-{
-	char *author = "by Vadim Kochan <vadim4j@gmail.com>";
-	char *help = "(Press Ctr+C to exit)";
-
-	mvprintw(max_y / 2, max_x / 2 - 3, "");
-	attron(COLOR_PAIR(CODE_COLOR));
-	printw("[");
-	attroff(COLOR_PAIR(CODE_COLOR));
-	attron(COLOR_PAIR(CODE_COLOR) | A_BOLD);
-	printw("The Matrix");
-	attroff(COLOR_PAIR(CODE_COLOR) | A_BOLD);
-	attron(COLOR_PAIR(CODE_COLOR));
-	printw("]");
-	mvprintw(max_y / 2 + 2, max_x / 2 - 14, author);
-	mvprintw(max_y / 2 + 3, max_x / 2 - 7, help);
-	attroff(COLOR_PAIR(CODE_COLOR));
-
-	refresh();
-}
-
 int main(int argc, char **argv)
 {
 	initscr();
@@ -111,9 +90,6 @@ int main(int argc, char **argv)
 	getmaxyx(stdscr, max_y, max_x);
 
 	init_flows();
-
-	print_banner();
-	sleep(3);
 
 	while (!do_break) {
 		int x;
