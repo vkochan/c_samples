@@ -9,7 +9,6 @@ MODULE_AUTHOR("Vadim Kochan <vadim4j@gmail.com>");
 MODULE_DESCRIPTION("Concurrent counting demo");
 MODULE_LICENSE("GPL");
 
-/* place in memory where concurrency happens ... */
 static volatile unsigned int count;
 
 #ifndef TIMES_INC
@@ -21,23 +20,29 @@ static volatile unsigned int count;
 #endif
 
 typedef struct {
-	unsigned long count;
+	unsigned long locked;
 } my_lock_t;
 
-#define MY_LOCK_INIT() { .count = 0L }
+#define MY_LOCK_INIT() { .locked = 0 }
 
 static inline void my_lock(my_lock_t *lock)
 {
 #ifdef CONFIG_MY_LOCK
-	while (test_and_set_bit(0, &lock->count) != 0)
-		;
+	/* indication of that we owned the lock is that previous
+	 * state == 0 which means unlocked, otherwise the lock is taken
+	 * by someone else and we need to busy-wait till the lock will be
+	 * cleared back by my_unlock(x) */
+	while (test_and_set_bit(0, &lock->locked) != 0)
+		cpu_relax();
 #endif
 }
 
 static inline void my_unlock(my_lock_t *lock)
 {
 #ifdef CONFIG_MY_LOCK
-	if (test_and_clear_bit(0, &lock->count) == 0)
+	/* clear back the lock to 0, which will allow to own the lock by waiting
+	 * CPUs */
+	if (test_and_clear_bit(0, &lock->locked) == 0)
 		BUG();
 #endif
 }
@@ -68,13 +73,15 @@ static struct work_struct *jobs[] = {
 	&counter_work2,
 };
 
+static unsigned int jobs_num;
+
 static int jobs_init(void)
 {
-	unsigned int jobs_num = 0;
+	unsigned int cpus_num = num_online_cpus();
 	unsigned int cpu;
 
-	if (num_online_cpus() < MAX_JOBS) {
-		pr_err("Need one more CPU!!!\n");
+	if (cpus_num < MAX_JOBS) {
+		pr_err("Need %u more CPUs!!!\n", MAX_JOBS - cpus_num);
 		return -EINVAL;
 	}
 
@@ -95,7 +102,7 @@ static void jobs_finish(void)
 {
 	int i;
 
-	for (i = 0; i < MAX_JOBS; i++)
+	for (i = 0; i < jobs_num; i++)
 		cancel_work_sync(jobs[i]);
 }
 
