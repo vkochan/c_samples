@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BANNER	"[THE MATRIX]"
+
 #define USEC_IN_MSEC 1000
 
 typedef struct mx_flow {
@@ -89,6 +91,12 @@ int main(int argc, char **argv)
 	getmaxyx(stdscr, max_y, max_x);
 
 	init_flows();
+
+	attron(COLOR_PAIR(CODE_COLOR) | A_BOLD);
+	mvaddstr(max_y / 2, max_x / 2 - strlen(BANNER) / 2, BANNER);
+	attroff(COLOR_PAIR(CODE_COLOR) | A_BOLD);
+	refresh();
+	sleep(2);
 
 	while (!do_break) {
 		int x;
