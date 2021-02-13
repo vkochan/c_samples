@@ -49,7 +49,7 @@ static void draw_flame(void)
 			}
 
 			attron(COLOR_PAIR(color) | A_BOLD);
-			mvaddch(y, x, 'X');
+			mvaddch(y, x, '0');
 			attroff(COLOR_PAIR(color) | A_BOLD);
 		}
 	}
